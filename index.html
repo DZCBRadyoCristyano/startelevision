@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>STAR TELEVISION - LIVE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: black;
+  overflow: hidden;
+}
+
+#container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* VIDEO */
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* GLASS EFFECT */
+.glass {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 20px;
+}
+
+/* TOP LABEL */
+#topText {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  color: white;
+  font-size: 13px;
+  z-index: 10;
+  transition: opacity 0.5s;
+}
+
+/* PLAY BUTTON */
+#playBtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: white;
+  cursor: pointer;
+  z-index: 10;
+  transition: 0.3s;
+}
+
+#playBtn:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* LOADER */
+#loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top: 4px solid white;
+  animation: spin 1s linear infinite;
+  display: none;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+</style>
+<script>
+(function () {
+    "use strict";
+
+    // Disable Right Click
+    document.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+    });
+
+    // Disable Text Selection (except input and textarea)
+    document.addEventListener("selectstart", function (e) {
+        if (!["INPUT", "TEXTAREA"].includes(e.target.tagName)) {
+            e.preventDefault();
+        }
+    });
+
+    // Disable Dragging
+    document.addEventListener("dragstart", function (e) {
+        e.preventDefault();
+    });
+
+    // Disable Copy (except input and textarea)
+    document.addEventListener("copy", function (e) {
+        if (!["INPUT", "TEXTAREA"].includes(e.target.tagName)) {
+            e.preventDefault();
+        }
+    });
+
+    // Disable Cut (except input and textarea)
+    document.addEventListener("cut", function (e) {
+        if (!["INPUT", "TEXTAREA"].includes(e.target.tagName)) {
+            e.preventDefault();
+        }
+    });
+
+    // Disable Keyboard Shortcuts
+    document.addEventListener("keydown", function (e) {
+        const key = e.key.toUpperCase();
+
+        if (
+            key === "F12" ||
+            (e.ctrlKey && e.shiftKey && ["I", "J", "C", "K"].includes(key)) ||
+            (e.ctrlKey && ["U", "S", "P", "A"].includes(key))
+        ) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Detect DevTools via Window Size
+    function detectDevTools() {
+        const threshold = 160;
+        if (
+            window.outerWidth - window.innerWidth > threshold ||
+            window.outerHeight - window.innerHeight > threshold
+        ) {
+            blockAccess();
+        }
+    }
+
+    // Detect DevTools via Debugger
+    function detectDebugger() {
+        const start = new Date().getTime();
+        debugger;
+        const end = new Date().getTime();
+        if (end - start > 100) {
+            blockAccess();
+        }
+    }
+
+    // Block Access
+    function blockAccess() {
+        document.body.innerHTML = "";
+        document.body.style.backgroundColor = "#000";
+        window.location.replace("about:blank");
+    }
+
+    // Prevent Iframe Embedding
+    if (window.top !== window.self) {
+        window.top.location = window.self.location;
+    }
+
+    // Disable Console Output
+    console.log = function () {};
+    console.warn = function () {};
+    console.error = function () {};
+    console.info = function () {};
+    console.debug = function () {};
+    console.clear = function () {};
+
+    // Run Detection
+    setInterval(detectDevTools, 1000);
+    setInterval(detectDebugger, 1500);
+
+})();
+</script>
+</head>
+
+<body>
+
+<div id="container">
+  <div id="topText" class="glass">Double tap to fullscreen</div>
+  <video id="video" playsinline></video>
+  <div id="playBtn" class="glass">▶</div>
+  <div id="loader"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<script>
+const video = document.getElementById('video');
+const playBtn = document.getElementById('playBtn');
+const loader = document.getElementById('loader');
+const topText = document.getElementById('topText');
+
+const videoSrc = "https://startelevisionph.itunerworldwide.workers.dev/master.live.m3u8";
+
+let hls;
+let reconnecting = false;
+let uiTimeout;
+
+/* INIT */
+function initPlayer() {
+  if (Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(videoSrc);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      if (data.fatal && !reconnecting) {
+        reconnecting = true;
+        loader.style.display = "block";
+
+        setTimeout(() => {
+          hls.destroy();
+          initPlayer();
+          reconnecting = false;
+        }, 3000);
+      }
+    });
+
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = videoSrc;
+  }
+}
+
+/* PLAY */
+playBtn.onclick = () => {
+  playBtn.style.display = "none";
+  loader.style.display = "block";
+  video.play();
+};
+
+/* BUFFER */
+video.addEventListener('waiting', () => loader.style.display = "block");
+video.addEventListener('playing', () => loader.style.display = "none");
+
+/* DOUBLE TAP FULLSCREEN */
+let lastTap = 0;
+document.getElementById('container').addEventListener('click', function () {
+  const now = new Date().getTime();
+
+  if (now - lastTap < 300) {
+    if (!document.fullscreenElement) {
+      this.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  lastTap = now;
+  showUI();
+});
+
+/* AUTO HIDE UI */
+function showUI() {
+  topText.style.opacity = "1";
+
+  clearTimeout(uiTimeout);
+  uiTimeout = setTimeout(() => {
+    topText.style.opacity = "0";
+  }, 3000);
+}
+
+/* SWIPE VOLUME */
+let startY = 0;
+
+video.addEventListener('touchstart', e => {
+  startY = e.touches[0].clientY;
+});
+
+video.addEventListener('touchmove', e => {
+  let moveY = e.touches[0].clientY;
+  let diff = startY - moveY;
+
+  if (Math.abs(diff) > 20) {
+    let newVolume = video.volume + (diff / 500);
+    video.volume = Math.max(0, Math.min(1, newVolume));
+    startY = moveY;
+  }
+});
+
+/* KEYBOARD */
+document.addEventListener('keydown', e => {
+  if (e.key === "ArrowUp") video.volume = Math.min(1, video.volume + 0.1);
+  if (e.key === "ArrowDown") video.volume = Math.max(0, video.volume - 0.1);
+  if (e.key === " ") video.paused ? video.play() : video.pause();
+});
+
+/* START */
+initPlayer();
+</script>
+
+</body>
+</html>
