@@ -1,99 +1,246 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-  <meta charset="UTF-8">
-  <title>STAR TELEVISION - LIVE</title>
-  <script src="https://cdn.fluidplayer.com/3.9.0/fluidplayer.min.js"></script>
-  <style>
-    body {
-      margin: 0;
-      background-color: #000;
-      font-family: Arial, sans-serif;
-    }
 
-    .video-container {
-      position: relative;
-      width: 100%;
-      padding-top: 56.25%; /* 16:9 Aspect Ratio */
-    }
+<title>STAR TELEVISION - LIVE</title>
 
-    #my-video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
 
-    .logo {
-      position: absolute;
-      z-index: 10;
-      pointer-events: none;
-    }
+<script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
 
-    .top-left {
-      top: 10px;
-      left: 10px;
-      max-height: 60px;
-    }
+<script>
+jwplayer.key =
+'Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==';
+</script>
 
-    .top-right {
-      top: 10px;
-      right: 10px;
-      max-height: 100px;
-    }
+<style>
 
-    .viewer-count {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.6);
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 14px;
-      z-index: 10;
-      pointer-events: none;
-    }
-  </style>
+html,
+body{
+margin:0;
+padding:0;
+width:100%;
+height:100%;
+background:#000;
+overflow:hidden;
+}
+
+#video-wrapper{
+position:relative;
+width:100vw;
+height:100vh;
+}
+
+#player-container{
+width:100%;
+height:100%;
+}
+
+.tv-logo{
+
+position:fixed;
+
+z-index:2147483647;
+
+max-width:180px;
+max-height:90px;
+
+pointer-events:none;
+
+object-fit:contain;
+
+filter:
+drop-shadow(
+0 0 8px rgba(0,0,0,.9)
+);
+
+}
+
+.left-logo{
+top:20px;
+left:20px;
+}
+
+.right-logo{
+top:20px;
+right:20px;
+}
+
+:fullscreen .tv-logo,
+:-webkit-full-screen .tv-logo{
+position:fixed;
+}
+
+@media(max-width:768px){
+
+.tv-logo{
+
+max-width:120px;
+
+max-height:60px;
+
+}
+
+.left-logo{
+top:10px;
+left:10px;
+}
+
+.right-logo{
+top:10px;
+right:10px;
+}
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-<div class="video-container">
-  <!-- Logos -->
-  <img class="logo top-left" src="https://i.imgur.com/RiZPI1t.gif" alt="Top Left Logo">
-  <img class="logo top-right" src="https://i.imgur.com/9llVCUS.png" alt="Top Right Logo">
+<div id="video-wrapper">
 
-  <!-- Viewer Count at Top Center -->
-  <div class="viewer-count" id="viewerCount">👁️ 198 viewers</div>
+<img
+class="tv-logo left-logo"
+src="https://i.imgur.com/97dUGWv.png">
 
-  <!-- Video Player -->
-  <video id="my-video" autoplay muted playsinline controls>
-    <source src="https://startelevisionph.itunerworldwide.workers.dev/master.live.m3u8" type="application/x-mpegURL" title="2160p">
-  </video>
+<img
+class="tv-logo right-logo"
+src="https://i.imgur.com/9llVCUS.png">
+
+<div id="player-container"></div>
+
 </div>
 
 <script>
-  // Initialize Fluid Player
-  fluidPlayer('my-video', {
-    layoutControls: {
-      fillToContainer: true,
-      autoplay: true,
-      mute: true
-    }
-  });
 
-  // Viewer Count Simulation
-  function updateViewerCount() {
-    const viewerCount = Math.floor(Math.random() * (240 - 120 + 1)) + 120;
-    document.getElementById('viewerCount').textContent = `👁️ ${viewerCount} viewers`;
-  }
+/* PLAYER */
 
-  // Update every 5–10 seconds
-  setInterval(updateViewerCount, Math.floor(Math.random() * 5000) + 5000);
-  updateViewerCount(); // initial run
+jwplayer("player-container").setup({
+
+file:
+"https://startelevisionph.itunerworldwide.workers.dev/master.live.m3u8",
+
+type:
+"hls",
+
+width:
+"100%",
+
+height:
+"100%",
+
+autostart:
+true,
+
+mute:
+true,
+
+stretching:
+"uniform",
+
+primary:
+"html5",
+
+logo:{
+file:"",
+hide:true
+}
+
+});
+
+/* ANTI RIGHT CLICK */
+
+document.addEventListener(
+"contextmenu",
+e=>e.preventDefault()
+);
+
+/* BLOCK KEYS */
+
+document.addEventListener(
+"keydown",
+function(e){
+
+if(
+e.key==="F12"
+){
+
+e.preventDefault();
+
+}
+
+if(
+e.ctrlKey &&
+e.shiftKey &&
+(
+e.key==="I"||
+e.key==="J"||
+e.key==="C"
+)
+){
+
+e.preventDefault();
+
+}
+
+if(
+e.ctrlKey &&
+(
+e.key==="u"||
+e.key==="U"
+)
+){
+
+e.preventDefault();
+
+}
+
+}
+);
+
+/* BASIC DEVTOOLS DETECT */
+
+setInterval(function(){
+
+if(
+
+window.outerWidth-
+window.innerWidth>160
+
+||
+
+window.outerHeight-
+window.innerHeight>160
+
+){
+
+document.body.innerHTML="";
+
+}
+
+},1000);
+
+/* SELECT OFF */
+
+document.addEventListener(
+"selectstart",
+e=>e.preventDefault()
+);
+
+/* DRAG OFF */
+
+document.addEventListener(
+"dragstart",
+e=>e.preventDefault()
+);
+
 </script>
 
 </body>
+
 </html>
