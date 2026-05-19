@@ -4,17 +4,14 @@
 <head>
 
 <meta charset="UTF-8">
-
-<meta
-name="viewport"
-content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>PLAYER</title>
 
 <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
 
 <script>
-jwplayer.key=
+jwplayer.key =
 'Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==';
 </script>
 
@@ -22,46 +19,29 @@ jwplayer.key=
 
 html,
 body{
-
 margin:0;
-
 width:100%;
-
 height:100%;
-
-background:#000;
-
 overflow:hidden;
-
+background:#000;
 }
-
-/* PLAYER */
 
 #player{
-
 position:fixed;
-
 inset:0;
-
 }
 
-/* LOGOS */
+/* LOGO CONTAINER */
 
-.logo-layer{
+.dual-logo{
 
-position:fixed;
+position:absolute;
 
-top:0;
+top:max(10px,2vw);
 
-left:0;
+left:max(10px,2vw);
 
-right:0;
-
-padding:
-
-max(10px,2vw)
-
-max(10px,2vw);
+right:max(10px,2vw);
 
 display:flex;
 
@@ -75,25 +55,23 @@ z-index:999999;
 
 }
 
-.logo{
+/* LOGO */
 
-display:block;
+.dual-logo img{
 
 width:auto;
 
 height:auto;
 
-/* RESPONSIVE */
+max-width:min(16vw,220px);
 
-max-width:min(18vw,220px);
-
-max-height:min(10vh,100px);
+max-height:min(9vh,100px);
 
 object-fit:contain;
 
 filter:
 drop-shadow(
-0 0 10px rgba(0,0,0,.9)
+0 0 8px rgba(0,0,0,.85)
 );
 
 }
@@ -102,11 +80,11 @@ drop-shadow(
 
 @media(max-width:768px){
 
-.logo{
+.dual-logo img{
 
 max-width:32vw;
 
-max-height:56px;
+max-height:58px;
 
 }
 
@@ -120,26 +98,12 @@ max-height:56px;
 
 <div id="player"></div>
 
-<!-- HINDI NASA LOOB NG PLAYER -->
-<div class="logo-layer">
-
-<img
-class="logo"
-src="https://i.imgur.com/97dUGWv.png">
-
-<img
-class="logo"
-src="https://i.imgur.com/9llVCUS.png">
-
-</div>
-
 <script>
 
-jwplayer(
-"player"
-)
+var player =
+jwplayer("player");
 
-.setup({
+player.setup({
 
 file:
 "https://startelevisionph.itunerworldwide.workers.dev/master.live.m3u8",
@@ -153,11 +117,8 @@ width:
 height:
 "100%",
 
-aspectratio:
-null,
-
 stretching:
-"fill",
+"uniform",
 
 autostart:
 true,
@@ -175,7 +136,82 @@ hide:true
 
 });
 
-/* BASIC DETERRENTS */
+/* INSERT LOGO INSIDE JW */
+
+player.on(
+"ready",
+function(){
+
+const target =
+document.querySelector(
+".jwplayer"
+);
+
+if(
+target &&
+!document.querySelector(
+".dual-logo"
+)
+){
+
+const layer =
+document.createElement(
+"div"
+);
+
+layer.className =
+"dual-logo";
+
+layer.innerHTML =
+
+`
+<img src="https://i.imgur.com/97dUGWv.png">
+
+<img src="https://i.imgur.com/9llVCUS.png">
+`;
+
+target.appendChild(
+layer
+);
+
+}
+
+});
+
+/* KEEP AFTER FULLSCREEN */
+
+player.on(
+"fullscreen",
+function(){
+
+setTimeout(function(){
+
+const target =
+document.querySelector(
+".jwplayer"
+);
+
+const overlay =
+document.querySelector(
+".dual-logo"
+);
+
+if(
+target &&
+overlay
+){
+
+target.appendChild(
+overlay
+);
+
+}
+
+},200);
+
+});
+
+/* BASIC BLOCKS */
 
 document.addEventListener(
 "contextmenu",
@@ -225,11 +261,6 @@ e.preventDefault();
 }
 
 });
-
-document.addEventListener(
-"dragstart",
-e=>e.preventDefault()
-);
 
 </script>
 
